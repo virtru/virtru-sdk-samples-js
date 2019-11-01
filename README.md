@@ -1,4 +1,4 @@
-# virtru-sdk-js-sampes
+# virtru-sdk-js-samples
 JavaScript samples for the Virtru SDK.
 
 # Virtru SDK JavaScript Samples
