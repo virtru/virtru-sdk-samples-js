@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Virtru SDK for JavaScript - Form</title>
+    <link href="https://sdk.virtru.com/js/latest/auth-widget/index.css" rel="stylesheet" />
+    <script src="https://sdk.virtru.com/js/latest/auth-widget/index.js"></script>
+    <script src="https://sdk.virtru.com/js/latest/virtru-sdk.min.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.283.1.min.js"></script>
+    <script src="js/aws_s3.js"></script>
+    <script src="js/util.js"></script>
+    <link href="css/form.css" rel="stylesheet" />
+
+</head>
+
+<body>
+    <div class="form-style-2" id="formContainer">
+        <div class="form-style-2-heading">Form Example</div>
+        <div class="form-style-2"><strong>Security Note</strong>  
+            <ul>
+                <li>All data will be owned by form submitter</li>
+                <li>User formowner@example.com will be granted access</li>
+                <li>Form data can be managed by visiting: <a href="https://secure.virtru.com/dashboard">Virtru Dashboard</a></li>
+                <li>Data can be revoked at any time</li>
+            </ul>
+        </div>
+
+        <form id="myForm" onsubmit="return false;">
+            <label for="form_firstname"><span>First Name </span><input type="text"
+                     class="input-field" name="form_firstname" value="" /></label> 
+            <label for="form_lastname"><span>Last Name</span><input type="text"
+                    class="input-field" name="form_lastname" value="" /></label>
+            <label for="form_email"><span>Email</span><input type="text"
+                    class="input-field" name="form_email" value="" /></label>
+            <label for="form_file"><span>File</span><input type="file"
+                class="input-field" id="form_file" name="form_file" value="" /></label>
+                
+        </form>
+        <button id="btnSubmit">Submit</button>
+
+    </div>
+    <div id="spinner" class="virtru-auth-loader" style="display: none;"></div>
+    <div id="success" style="display: none;"><h1>Success!</h1></div>
+    <div id="authModal" style="display:none;"></div>
+    <div id="app"></div>
+    <script>
+        
+        // Owner of the form. This address will be 
+        // granted rights to the data submitted via the form
+        const formOwner = "formsubmit@example.com";
+
+        // Show and Hide UI elements
+        function showForm(){
+            document.querySelector('#formContainer').style = 'display:block;';
+        }
+
+        function hideForm(){
+            document.querySelector('#formContainer').style = 'display:none;';
+        }
+
+        function showSpinner() {
+            document.querySelector('#spinner').style = 'display:block;';
+        }
+
+        function hideSpinner() {
+            document.querySelector('#spinner').style = 'display:none;';
+        }
+
+        function showAuth(){
+            document.querySelector('#authModal').style = 'display:block;';            
+        }
+
+        function hideAuth(){
+            document.querySelector('#authModal').style = 'display:none;';            
+        }
+
+        function showSuccess(){
+            document.querySelector('#success').style = 'display:block;';            
+        }
+
+        function hideSuccess(){
+            document.querySelector('#success').style = 'display:none;';            
+        }
+        function triggerSubmit() {
+            showAuth();
+            
+            return false;
+        };
+
+        // Build JSON form data
+        function buildJson(formFields) {
+            let formData = {};           
+            formFields.forEach(fieldName => {
+                formData[fieldName] = document.querySelector(`#myForm [name="${fieldName}"]`).value;
+            });
+            return formData;
+        }
+
+        // Encrypt a string (TDF) then Upload to S3
+        async function EncryptUploadWithString(uuid,formData,policyOwner) {
+            const plainFilename = uuid + '.form.json';
+            const tdfFilename = uuid + '.form.tdf3.html';
+            const client = new Virtru.Client({email:policyOwner});
+            const encryptParams = new Virtru.EncryptParamsBuilder()
+                .withStringSource(JSON.stringify(formData))
+                .withDisplayFilename(plainFilename)
+                .withUsersWithAccess([formOwner])
+                .build();
+            const ct = await client.encrypt(encryptParams);
+            const ctString = await ct.toString();
+           
+            uploadFile(ctString,tdfFilename);
+
+        }
+
+        // Encrypt a file to TDF then Upload to S3
+        async function EncryptUploadWithBufferedArray(uuid,fileObject,fileOriginalName,policyOwner) {
+            let fileBlob = new Blob([fileObject]);
+            let fileArrayBuffer = null;
+            fileArrayBuffer = await new Response(fileBlob).arrayBuffer();
+            
+            const plainFilename1 = fileOriginalName;
+            const tdfFilename1 = uuid + '.file.1.tdf3.html';
+            const client1 = new Virtru.Client({email:policyOwner});
+
+            const encryptParams1 = new Virtru.EncryptParamsBuilder()
+                .withArrayBufferSource(fileArrayBuffer)
+                .withDisplayFilename(plainFilename1)
+                .withUsersWithAccess([formOwner])
+                .build();
+            const encryptedPayload1 = await client1.encrypt(encryptParams1);
+            const encryptedString1 = await encryptedPayload1.toString();
+            uploadFile(encryptedString1,tdfFilename1);
+        }
+
+        async function submitFormData(policyOwner) {
+            let formFields = ["form_firstname","form_lastname","form_email"];
+            let formData = buildJson(formFields);
+                       
+            const uuid = uuidv4();
+            console.log(uuid);
+
+            EncryptUploadWithString(uuid,formData,policyOwner);
+      
+            const fileName1 = document.querySelector('#myForm [name="form_file"]').files[0].name;
+            const fileObject1 = document.querySelector('#myForm [name="form_file"]').files[0];
+            EncryptUploadWithBufferedArray(uuid,fileObject1,fileName1,policyOwner)
+            
+            
+        }
+
+        // Hide Virtru Auth and submit form data
+        async function afterAuth(email) {
+            hideAuth();
+            
+            await submitFormData(email);   
+            hideForm();
+            showSuccess();
+             
+        }
+
+        // Add event listener to the submit button
+        document.getElementById("btnSubmit").addEventListener('click', () => {
+            triggerSubmit();
+        })
+
+        // Initialize Virtru Authorization Widget
+        Virtru.AuthWidget('authModal', { afterAuth });
+
+    </script>
+</body>
+
+</html>
