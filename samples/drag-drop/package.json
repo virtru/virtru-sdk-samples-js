@@ -1,0 +1,23 @@
+{
+  "name": "virtru-sdk-recipe-dragdrop",
+  "version": "1.0.1",
+  "description": "A simple Virtru SDK drag and drop demo with the AuthWidget",
+  "main": "index.html",
+  "scripts": {
+    "dev": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/virtru/virtru-sdk-recipe-dragdrop.git"
+  },
+  "author": "Ryan Schumacher <jschumacher@virtru.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/virtru/virtru-sdk-recipe-dragdrop/issues"
+  },
+  "homepage": "https://github.com/virtru/virtru-sdk-recipe-dragdrop#readme",
+  "devDependencies": {
+    "parcel-bundler": "^1.12.3"
+  }
+}
