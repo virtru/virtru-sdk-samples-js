@@ -1,0 +1,10 @@
+# Tmp files
+.DS_Store
+*.tmp
+
+# Tmp dirs
+dist
+build
+
+# Node files
+node_modules

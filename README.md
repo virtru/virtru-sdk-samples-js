@@ -8,6 +8,7 @@ JavaScript samples for the [Virtru Platform SDK](https://developer.virtru.com/)
 
 ## Samples
 - [Secure Form and File Submission to S3](./virtru-sdk-js-webform/)
+- [Drag and Drop](./samples/drag-drop)
 
 ## License
 Copyright © 2019 Virtru Corporation
