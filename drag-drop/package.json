@@ -18,6 +18,6 @@
   },
   "homepage": "https://github.com/virtru/virtru-sdk-recipe-dragdrop#readme",
   "devDependencies": {
-    "parcel-bundler": "^1.12.3"
+    "parcel-bundler": "^1.12.5"
   }
 }
